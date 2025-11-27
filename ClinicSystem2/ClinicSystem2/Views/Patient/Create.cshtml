@@ -1,0 +1,177 @@
+﻿@model ClinicSystem2.ViewModels.PatientCreateEditViewModel
+
+@{
+    ViewData["Title"] = "Add New Patient";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Add New Patient</h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Patient Information</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" id="patientForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="FullName" class="form-label"></label>
+                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Phone" class="form-label"></label>
+                                <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="BirthDate" class="form-label"></label>
+                                <input asp-for="BirthDate" class="form-control" type="date" />
+                                <span asp-validation-for="BirthDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Gender" class="form-label"></label>
+                                <select asp-for="Gender" class="form-select">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Address" class="form-label"></label>
+                                <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Register Patient
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="calculateAgeFromForm()">
+                            <i class="fas fa-calculator"></i> Calculate Age
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Registration Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Important Notes</h6>
+                    <ul class="mb-0">
+                        <li>All fields marked with * are required</li>
+                        <li>Email must be unique for each patient</li>
+                        <li>Patient age must be between 1 and 120 years</li>
+                        <li>Registration date will be set automatically</li>
+                    </ul>
+                </div>
+
+                <div class="mt-3">
+                    <h6>Age Calculator</h6>
+                    <div class="input-group mb-2">
+                        <input type="date" class="form-control" id="ageCalcInput">
+                        <button class="btn btn-outline-secondary" type="button" onclick="quickAgeCalc()">
+                            Calculate
+                        </button>
+                    </div>
+                    <div id="quickAgeResult" class="small text-muted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function calculateAgeFromForm() {
+            const birthDateInput = document.querySelector('#BirthDate');
+            if (!birthDateInput.value) {
+                alert('Please enter birth date first');
+                return;
+            }
+
+            const birthDate = new Date(birthDateInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            alert(`Patient will be ${age} years old`);
+        }
+
+        function quickAgeCalc() {
+            const input = document.getElementById('ageCalcInput');
+            const resultDiv = document.getElementById('quickAgeResult');
+
+            if (!input.value) {
+                resultDiv.innerHTML = 'Please select a date';
+                return;
+            }
+
+            const birthDate = new Date(input.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            resultDiv.innerHTML = `<strong>Age: ${age} years old</strong>`;
+        }
+
+        // Set maximum birth date to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('BirthDate').max = today;
+            document.getElementById('ageCalcInput').max = today;
+        });
+    </script>
+}

@@ -1,0 +1,303 @@
+﻿@model ClinicSystem2.ViewModels.PatientViewModel
+
+@{
+    ViewData["Title"] = "Patient Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Patient Details</h1>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.PatientID" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user"></i> Personal Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Full Name:</dt>
+                    <dd class="col-sm-8">@Model.FullName</dd>
+
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email">@Model.Email</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Phone:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <a href="tel:@Model.Phone">@Model.Phone</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Birth Date:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.BirthDate.HasValue)
+                        {
+                            @Model.BirthDate.Value.ToString("MMMM dd, yyyy")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Age:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.Age.HasValue)
+                        {
+                            <span class="badge bg-info">@Model.Age years old</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Gender:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge @(Model.Gender == "Male" ? "bg-primary" : "bg-pink")">
+                            @Model.Gender
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-4">Address:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Address))
+                        {
+                            @Model.Address
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Registration Date:</dt>
+                    <dd class="col-sm-8">
+                        <small class="text-muted">@Model.CreatedDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</small>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+               
+                <a asp-controller="Appointment" asp-action="Create" class="btn btn-outline-primary mb-2 w-100">
+                    <i class="fas fa-plus"></i> Book New Appointment
+                </a>
+                <a asp-controller="MedicalRecord" asp-action="PatientHistory" asp-route-patientId="@Model.PatientID"
+                   class="btn btn-outline-warning mb-2 w-100">
+                    <i class="fas fa-file-medical"></i> View Medical History
+                </a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Age Calculator</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Calculate Age from Birth Date:</label>
+                    <input type="date" class="form-control" id="birthDateInput"
+                           value="@(Model.BirthDate?.ToString("yyyy-MM-dd"))">
+                </div>
+                <button class="btn btn-outline-warning w-100" onclick="calculateAgeFromInput()">
+                    <i class="fas fa-calculator"></i> Calculate Age
+                </button>
+                <div id="ageResult" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.MedicalHistory != null && ViewBag.MedicalHistory.Count > 0)
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-file-medical-alt"></i> Medical History
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Doctor</th>
+                            <th>Specialty</th>
+                            <th>Diagnosis</th>
+                            <th>Prescription</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in ViewBag.MedicalHistory)
+                        {
+                            <tr>
+                                <td>
+                                    <small>@record.RecordDate?.ToString("MMM dd, yyyy")</small>
+                                </td>
+                                <td>@record.DoctorName</td>
+                                <td>@record.Specialty</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(record.Diagnosis))
+                                    {
+                                        <span class="diagnosis-text" title="@record.Diagnosis">
+                                            @(record.Diagnosis.Length > 50 ? record.Diagnosis.Substring(0, 50) + "..." : record.Diagnosis)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No diagnosis</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(record.Prescription))
+                                    {
+                                        <span class="prescription-text" title="@record.Prescription">
+                                            @(record.Prescription.Length > 50 ? record.Prescription.Substring(0, 50) + "..." : record.Prescription)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No prescription</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mt-4">
+        <div class="card-body text-center py-4">
+            <i class="fas fa-file-medical-alt fa-3x text-muted mb-3"></i>
+            <h4>No Medical History</h4>
+            <p class="text-muted">This patient doesn't have any medical records yet.</p>
+            <a asp-controller="MedicalRecord" asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Medical Record
+            </a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function calculateAge(patientId) {
+            fetch(`/Patient/CalculateAge?patientId=${patientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Patient age: ${data.age} years`);
+                })
+                .catch(error => {
+                    alert('Error calculating age');
+                });
+        }
+
+        function getNextAppointment(patientId) {
+            fetch(`/Patient/GetNextAppointment?patientId=${patientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Next appointment: ${data.nextAppointment}`);
+                })
+                .catch(error => {
+                    alert('Error getting next appointment');
+                });
+        }
+
+        function calculateAgeFromInput() {
+            const birthDateInput = document.getElementById('birthDateInput');
+            const resultDiv = document.getElementById('ageResult');
+
+            if (!birthDateInput.value) {
+                alert('Please select a birth date');
+                return;
+            }
+
+            const birthDate = new Date(birthDateInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Age Calculation:</strong><br>
+                    Birth Date: ${birthDate.toLocaleDateString()}<br>
+                    Current Age: <strong>${age} years old</strong>
+                </div>
+            `;
+        }
+
+        // إظهار النص الكامل عند النقر
+        document.addEventListener('DOMContentLoaded', function() {
+            const diagnosisElements = document.querySelectorAll('.diagnosis-text');
+            const prescriptionElements = document.querySelectorAll('.prescription-text');
+
+            diagnosisElements.forEach(el => {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', function() {
+                    alert('Diagnosis: ' + this.title);
+                });
+            });
+
+            prescriptionElements.forEach(el => {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', function() {
+                    alert('Prescription: ' + this.title);
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .bg-pink {
+            background-color: #e83e8c !important;
+        }
+
+        .diagnosis-text:hover,
+        .prescription-text:hover {
+            background-color: #f8f9fa;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+    </style>
+}

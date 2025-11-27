@@ -1,0 +1,104 @@
+﻿@model IEnumerable<ClinicSystem2.ViewModels.AppointmentViewModel>
+
+@{
+    ViewData["Title"] = "Search Results";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Search Results</h1>
+    <a asp-action="Index" class="btn btn-secondary">Back to All Appointments</a>
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Search Again</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="SearchByDoctor" method="get" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" name="doctorName" class="form-control" placeholder="Doctor Name" value="@ViewContext.HttpContext.Request.Query["doctorName"]" />
+            </div>
+            <div class="col-md-5">
+                <input type="date" name="date" class="form-control" value="@ViewContext.HttpContext.Request.Query["date"]" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="alert alert-info">
+        Found @Model.Count() appointment(s) matching your search criteria.
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Specialty</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@item.PatientName</strong><br />
+                            <small class="text-muted">@item.PatientPhone</small>
+                        </td>
+                        <td>@item.DoctorName</td>
+                        <td>@item.Specialty</td>
+                        <td>@item.AppointmentDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(item.Status)">@item.Status</span>
+                        </td>
+                        <td>@(string.IsNullOrEmpty(item.Notes) ? "-" : item.Notes)</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-action="Details" asp-route-id="@item.AppointmentID" class="btn btn-sm btn-info">Details</a>
+                                <a asp-action="Edit" asp-route-id="@item.AppointmentID" class="btn btn-sm btn-warning">Edit</a>
+                                @if (item.Status == "Confirmed" || item.Status == "Pending")
+                                {
+                                    <a asp-action="Complete" asp-route-id="@item.AppointmentID" class="btn btn-sm btn-success">Complete</a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h3>No Appointments Found</h3>
+        <p class="text-muted">No appointments match your search criteria. Please try different search terms.</p>
+        <a asp-action="Index" class="btn btn-primary">View All Appointments</a>
+    </div>
+}
+
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Confirmed" => "bg-success",
+            "Pending" => "bg-warning",
+            "Completed" => "bg-info",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

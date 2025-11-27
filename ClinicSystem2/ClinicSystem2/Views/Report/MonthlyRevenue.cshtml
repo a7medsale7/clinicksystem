@@ -1,0 +1,187 @@
+﻿@model IEnumerable<ClinicSystem2.ViewModels.MonthlyRevenueViewModel>
+
+@{
+    ViewData["Title"] = "Monthly Revenue Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Monthly Revenue Report</h1>
+    <div>
+        <a asp-action="Financial" class="btn btn-outline-secondary">Financial Report</a>
+        <a asp-action="DoctorPerformance" class="btn btn-outline-info">Doctor Performance</a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">@Model.Sum(x => x.TotalRevenue).ToString("C")</h4>
+                        <p class="mb-0">Total Revenue</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-bar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">@Model.Sum(x => x.TotalTransactions)</h4>
+                        <p class="mb-0">Total Transactions</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exchange-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">@Model.Average(x => x.AveragePayment).ToString("C")</h4>
+                        <p class="mb-0">Average Payment</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calculator fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Revenue Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Monthly Revenue Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Year</th>
+                        <th>Month</th>
+                        <th>Payment Method</th>
+                        <th>Total Transactions</th>
+                        <th>Total Revenue</th>
+                        <th>Average Payment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Year</td>
+                            <td>@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month)</td>
+                            <td>
+                                <span class="badge bg-secondary">@item.PaymentMethod</span>
+                            </td>
+                            <td>@item.TotalTransactions</td>
+                            <td>@item.TotalRevenue.ToString("C")</td>
+                            <td>@item.AveragePayment.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td colspan="3"><strong>Total</strong></td>
+                        <td><strong>@Model.Sum(x => x.TotalTransactions)</strong></td>
+                        <td><strong>@Model.Sum(x => x.TotalRevenue).ToString("C")</strong></td>
+                        <td><strong>@Model.Average(x => x.AveragePayment).ToString("C")</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Revenue by Month</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Transactions by Payment Method</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="paymentMethodChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sample chart data - you would need to format your actual data
+        const revenueData = {
+            labels: @Html.Raw(Json.Serialize(Model.Select(x => $"{System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(x.Month)} {x.Year}"))),
+            datasets: [{
+                label: 'Monthly Revenue',
+                data: @Html.Raw(Json.Serialize(Model.Select(x => x.TotalRevenue))),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        const paymentMethodData = {
+            labels: @Html.Raw(Json.Serialize(Model.Select(x => x.PaymentMethod).Distinct())),
+            datasets: [{
+                data: @Html.Raw(Json.Serialize(Model.GroupBy(x => x.PaymentMethod).Select(g => g.Sum(x => x.TotalTransactions)))),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Initialize charts
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: revenueData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('paymentMethodChart'), {
+            type: 'pie',
+            data: paymentMethodData
+        });
+    </script>
+}

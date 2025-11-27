@@ -1,0 +1,59 @@
+﻿@model ClinicSystem2.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Detailed Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Detailed Dashboard</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to Home</a>
+</div>
+
+<!-- Include the same content as Index.cshtml but with more detailed information -->
+@await Html.PartialAsync("_DashboardStats", Model)
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">System Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h3>@Model.TotalPatients</h3>
+                                <p class="text-muted">Total Patients</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h3>@Model.TotalDoctors</h3>
+                                <p class="text-muted">Active Doctors</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h3>@Model.TodayAppointments</h3>
+                                <p class="text-muted">Today's Appointments</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h3>@Model.TotalRevenue.ToString("C")</h3>
+                                <p class="text-muted">Total Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

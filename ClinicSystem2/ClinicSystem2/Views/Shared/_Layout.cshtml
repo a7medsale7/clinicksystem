@@ -1,0 +1,574 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Clinic Management System</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ClinicSystem2.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- Custom Styles from site.css (Consolidated) --- */
+
+        /* Sidebar enhancements - Reverting to original for consistency */
+        .sidebar {
+            /* Using the gradient from the inline styles as it's more specific/richer */
+            background: linear-gradient(180deg, #4e73df 0%, #224abe 100%) !important;
+            min-height: calc(100vh - 56px);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+            padding-right: 0;
+        }
+
+            .sidebar .nav-link {
+                transition: all 0.3s ease;
+                color: #e0e0e0 !important;
+                padding: 10px 20px;
+                margin: 4px 0;
+                border-left: 4px solid transparent;
+            }
+
+                .sidebar .nav-link:hover {
+                    background: rgba(255, 255, 255, 0.1) !important;
+                    color: #ffffff !important;
+                    border-left-color: #667eea;
+                    transform: none; /* Removing translateX(5px) from first CSS block to keep it cleaner */
+                }
+
+                .sidebar .nav-link.active {
+                    background: rgba(255,255,255,0.2);
+                    color: #ffffff !important;
+                    font-weight: 600;
+                    border-left-color: #ffffff;
+                }
+
+        /* Card enhancements */
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+            }
+
+        /* Button enhancements */
+        .btn {
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #4e73df 0%, #224abe 100%);
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background: linear-gradient(90deg, #224abe 0%, #4e73df 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(78, 115, 223, 0.5);
+            }
+
+        /* Table enhancements */
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        /* Badge enhancements */
+        .badge {
+            font-size: 0.75em;
+            padding: 0.4em 0.6em;
+        }
+
+        /* Alert enhancements */
+        .alert {
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Navbar & Footer Styling */
+        .navbar-dark {
+            background-color: #36454f !important; /* Dark Slate Gray */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: #ffffff !important;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: color 0.3s ease;
+        }
+
+            .navbar-nav .nav-link:hover {
+                color: #4e73df !important; /* Primary Blue on hover */
+            }
+
+        /* Main Content */
+        .main-content {
+            background-color: #f4f7f6; /* Very light, soft background */
+            /* * 🛑 التعديل الرئيسي: إزالة الـ flex-grow والسماح بارتفاع المحتوى بتحديد الارتفاع
+                     * تم تعديل min-height لضمان أن المحتوى يمتد على الأقل لملء الارتفاع المرئي
+                     * ناقص ارتفاع الـ Navbar (56px) و الـ Footer (تقريبي)
+                     */
+            min-height: calc(100vh - 56px - 40px); /* Adjusting min-height to push footer down */
+            padding-top: 20px;
+            padding-bottom: 20px !important; /* Standard bottom padding */
+        }
+
+        /* Status badges */
+        .badge-status-pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .badge-status-confirmed {
+            background-color: #28a745;
+        }
+
+        .badge-status-completed {
+            background-color: #17a2b8;
+        }
+
+        .badge-status-cancelled {
+            background-color: #dc3545;
+        }
+
+
+        /* Stat Card */
+        .stat-card {
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(78, 115, 223, 0.4);
+        }
+
+            .stat-card i {
+                font-size: 3rem;
+                opacity: 0.9;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            }
+
+
+        /* ----------------------------------------------- */
+        /* ✅ التعديلات للـ Footer العادي (Scroll-dependent) */
+        /* ----------------------------------------------- */
+
+        /* 1. إلغاء خصائص Flexbox التي تم إضافتها سابقاً */
+        html, body {
+            height: auto; /* مهم جداً: العودة إلى الارتفاع التلقائي */
+            /* display: flex;
+                                   flex-direction: column; */
+        }
+
+        .container-fluid {
+            /* flex-grow: 1; */ /* إزالة Grow */
+        }
+
+        .footer {
+            padding: 10px 0 !important;
+            background-color: #36454f !important;
+            color: #f4f7f6 !important;
+            font-size: 0.9rem;
+            border-top: 3px solid #4e73df;
+            position: relative !important; /* تم التأكيد هنا لضمان أنه يتبع المحتوى */
+            /* flex-shrink: 0; */
+            z-index: 1030;
+        }
+
+            .footer a {
+                color: #9cb3f7;
+                text-decoration: none;
+            }
+
+                .footer a:hover {
+                    color: #ffffff;
+                }
+        /* ----------------------------------------------- */
+
+
+        /* Print styles */
+        @@media print {
+            .sidebar, .navbar, .footer, .no-print {
+                display: none !important;
+            }
+
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 1000;
+                width: 250px;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+                .sidebar.show {
+                    transform: translateX(0);
+                }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding-bottom: 50px !important; /* Ensure mobile content also clears footer */
+            }
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-stethoscope me-2"></i>
+                    <strong>Clinic Management System</strong>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav ms-auto">
+                       
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="TodayAppointments">
+                                <i class="fas fa-calendar-day me-1"></i>Today's Appts
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-chart-bar me-1"></i>Reports
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="Financial">Financial Report</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="MonthlyRevenue">Monthly Revenue</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="DoctorPerformance">Doctor Performance</a></li>
+                                <li><a class="dropdown-item" asp-controller="Report" asp-action="AppointmentLogs">Appointment Logs</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")"
+                               asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                                <span>APPOINTMENTS</span>
+                            </h6>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Appointment" && (ViewContext.RouteData.Values["Action"]?.ToString() == "Index" || ViewContext.RouteData.Values["Action"]?.ToString() == "TodaySchedule") ? "active" : "")"
+                               asp-controller="Appointment" asp-action="Index">
+                                <i class="fas fa-calendar-check"></i> All Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Appointment" asp-action="TodaySchedule">
+                                <i class="fas fa-clock"></i> Today's Schedule
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Appointment" asp-action="Create">
+                                <i class="fas fa-plus-circle"></i> New Appointment
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                                <span>PATIENTS</span>
+                            </h6>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Patient" ? "active" : "")"
+                               asp-controller="Patient" asp-action="Index">
+                                <i class="fas fa-user-injured"></i> All Patients
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="QuickRegister">
+                                <i class="fas fa-user-plus"></i> Quick Register
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                                <span>DOCTORS</span>
+                            </h6>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Doctor" ? "active" : "")"
+                               asp-controller="Doctor" asp-action="Index">
+                                <i class="fas fa-user-md"></i> All Doctors
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Doctor" asp-action="AvailableSlots">
+                                <i class="fas fa-calendar-alt"></i> Available Slots
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                                <span>MEDICAL RECORDS</span>
+                            </h6>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MedicalRecord" ? "active" : "")"
+                               asp-controller="MedicalRecord" asp-action="Index">
+                                <i class="fas fa-file-medical"></i> All Records
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                                <span>PAYMENTS</span>
+                            </h6>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Payment" ? "active" : "")"
+                               asp-controller="Payment" asp-action="Index">
+                                <i class="fas fa-money-bill-wave"></i> All Payments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Payment" asp-action="Create">
+                                <i class="fas fa-plus"></i> New Payment
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                                <span>QUICK ACTIONS</span>
+                            </h6>
+                        </li>
+                       
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="SystemStats">
+                                <i class="fas fa-chart-pie"></i> System Stats
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mt-3 shadow-sm" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> **Success:** @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mt-3 shadow-sm" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i> **Error:** @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show mt-3 shadow-sm" role="alert">
+                        <i class="fas fa-info-circle me-2"></i> **Info:** @TempData["InfoMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <footer class="border-top footer">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    &copy; 2025 - Clinic Management System -
+                    <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span>
+                        <i class="fas fa-heartbeat me-1"></i>
+                        Managing Healthcare Excellence
+                        <span id="currentDateTime" class="ms-3 badge bg-primary"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Initialize DataTables
+        $(document).ready(function () {
+            $('.table').DataTable({
+                "pageLength": 25,
+                "responsive": true,
+                "language": {
+                    "search": "Search:",
+                    "lengthMenu": "Show _MENU_ entries",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "paginate": {
+                        "previous": "Previous",
+                        "next": "Next"
+                    }
+                }
+            });
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+
+        // Active sidebar link highlighting
+        $(document).ready(function() {
+            var path = window.location.pathname;
+
+            if (path === '/') {
+                path = '/Home/Index'; // Assume root goes to Home/Index
+            }
+
+            $('.sidebar .nav-link').each(function() {
+                var $this = $(this);
+                var href = $this.attr('href');
+
+                // Compare with current path, ignoring trailing slashes and query strings
+                if (href && (path.toLowerCase().startsWith(href.toLowerCase()))) {
+                    // Remove existing active class and add to current match
+                    $('.sidebar .nav-link').removeClass('active');
+                    $this.addClass('active');
+                }
+            });
+        });
+
+        // Real-time clock in footer (moved from placeholder to actual badge in footer)
+        function updateClock() {
+            var now = new Date();
+            var datetime = now.toLocaleString('en-US', {
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            $('#currentDateTime').text(datetime);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Toast notifications (remains the same)
+        function showToast(message, type = 'success') {
+            var toast = $(`
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `);
+            $('.toast-container').append(toast);
+            var bsToast = new bootstrap.Toast(toast[0]);
+            bsToast.show();
+        }
+
+        // Check for new notifications (placeholder)
+        function checkNotifications() {
+            console.log('Checking for notifications...');
+            // Example: if (newNotification) showToast('New appointment pending!', 'info');
+        }
+
+        // Check every 30 seconds
+        setInterval(checkNotifications, 30000);
+    </script>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999"></div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

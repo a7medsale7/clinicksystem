@@ -1,0 +1,74 @@
+﻿@model ClinicSystem2.ViewModels.DoctorViewModel
+
+@{
+    ViewData["Title"] = "Delete Doctor";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Delete Doctor</h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="alert alert-danger">
+    <h4 class="alert-heading">
+        <i class="fas fa-exclamation-triangle"></i> Warning!
+    </h4>
+    <p>Are you sure you want to delete this doctor? This action cannot be undone.</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Doctor Information</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Full Name:</dt>
+            <dd class="col-sm-9">@Model.FullName</dd>
+
+            <dt class="col-sm-3">Specialty:</dt>
+            <dd class="col-sm-9">@Model.Specialty</dd>
+
+            <dt class="col-sm-3">Consultation Fee:</dt>
+            <dd class="col-sm-9">@Model.ConsultationFee.ToString("C")</dd>
+
+            <dt class="col-sm-3">Status:</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Description:</dt>
+            <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Description) ? "No description" : Model.Description)</dd>
+        </dl>
+
+        @if (Model.AppointmentCount > 0)
+        {
+            <div class="alert alert-warning">
+                <strong>Note:</strong> This doctor has @Model.AppointmentCount appointment(s).
+                Deleting the doctor will also remove all associated appointments and medical records.
+            </div>
+        }
+    </div>
+</div>
+
+<form asp-action="Delete" class="mt-4">
+    <input type="hidden" asp-for="DoctorID" />
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Confirm Delete
+        </button>
+        <a asp-action="Details" asp-route-id="@Model.DoctorID" class="btn btn-info">
+            <i class="fas fa-eye"></i> View Details
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>

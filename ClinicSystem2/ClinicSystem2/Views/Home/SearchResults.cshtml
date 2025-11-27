@@ -1,0 +1,70 @@
+﻿@model IEnumerable<ClinicSystem2.Models.VwAppointmentDetail>
+
+@{
+    ViewData["Title"] = "Search Results";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Search Results</h1>
+    <a asp-action="SearchAppointments" class="btn btn-outline-secondary">New Search</a>
+</div>
+
+@if (Model.Any())
+{
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Found @Model.Count() Appointments</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Doctor</th>
+                            <th>Patient</th>
+                            <th>Status</th>
+                            <th>Room</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appointment in Model)
+                        {
+                            <tr>
+                                <td>@appointment.AppointmentDate.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>@appointment.DoctorName</td>
+                                <td>@appointment.PatientName</td>
+                                <td>
+                                    <span class="badge badge-@GetStatusBadgeClass(appointment.AppointmentStatus)">
+                                        @appointment.AppointmentStatus
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center">
+        <h4>No appointments found</h4>
+        <p class="mb-0">No appointments match your search criteria. Please try a different search.</p>
+    </div>
+}
+
+@functions {
+    private string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "completed" => "success",
+            "confirmed" => "primary",
+            "pending" => "warning",
+            "cancelled" => "danger",
+            _ => "secondary"
+        };
+    }
+}

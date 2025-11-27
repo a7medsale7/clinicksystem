@@ -1,0 +1,135 @@
+﻿@model ClinicSystem2.ViewModels.AppointmentCompleteViewModel
+
+@{
+    ViewData["Title"] = "Complete Appointment";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Complete Appointment</h1>
+    <a asp-action="Details" asp-route-id="@Model.AppointmentID" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Details
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-check-circle"></i> Complete Appointment & Create Medical Record
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Appointment Summary -->
+                <div class="alert alert-info mb-4">
+                    <h6>Appointment Summary</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Patient:</strong> @Model.PatientName<br>
+                            <strong>Doctor:</strong> @Model.DoctorName
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Date:</strong> @Model.AppointmentDate.ToString("MMMM dd, yyyy")<br>
+                            <strong>Time:</strong> @Model.AppointmentDate.ToString("hh:mm tt")
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="Complete">
+                    <input type="hidden" asp-for="AppointmentID" />
+                    <input type="hidden" asp-for="PatientName" />
+                    <input type="hidden" asp-for="DoctorName" />
+                    <input type="hidden" asp-for="AppointmentDate" />
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Diagnosis" class="form-label"></label>
+                        <textarea asp-for="Diagnosis" class="form-control" rows="4"
+                                  placeholder="Enter diagnosis and findings..."></textarea>
+                        <span asp-validation-for="Diagnosis" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Prescription" class="form-label"></label>
+                        <textarea asp-for="Prescription" class="form-control" rows="3"
+                                  placeholder="Enter prescribed medications and instructions..."></textarea>
+                        <span asp-validation-for="Prescription" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Notes" class="form-label"></label>
+                        <textarea asp-for="Notes" class="form-control" rows="3"
+                                  placeholder="Enter any additional notes or recommendations..."></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check-double"></i> Complete Appointment & Save Record
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.AppointmentID" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Completion Notes</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Important</h6>
+                    <ul class="mb-0">
+                        <li>This action cannot be undone</li>
+                        <li>A medical record will be created automatically</li>
+                        <li>Appointment status will be set to "Completed"</li>
+                        <li>Diagnosis field is required</li>
+                    </ul>
+                </div>
+
+                <div class="mt-3">
+                    <h6>Quick Templates</h6>
+                    <button type="button" class="btn btn-outline-info btn-sm w-100 mb-2" onclick="useCommonColdTemplate()">
+                        Common Cold Template
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm w-100 mb-2" onclick="useFollowUpTemplate()">
+                        Follow-up Template
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm w-100" onclick="useRoutineCheckupTemplate()">
+                        Routine Checkup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function useCommonColdTemplate() {
+            document.getElementById('Diagnosis').value = 'Acute upper respiratory infection (Common Cold). Symptoms include runny nose, sore throat, cough, and mild fever.';
+            document.getElementById('Prescription').value = '1. Acetaminophen 500mg every 6 hours as needed for fever/pain\n2. Guaifenesin 400mg every 12 hours for cough\n3. Increased fluid intake and rest';
+            document.getElementById('Notes').value = 'Patient advised to rest and maintain hydration. Follow up if symptoms worsen or persist beyond 7 days.';
+        }
+
+        function useFollowUpTemplate() {
+            document.getElementById('Diagnosis').value = 'Follow-up visit for previous condition. Patient reports improvement in symptoms.';
+            document.getElementById('Prescription').value = 'Continue current medication regimen as prescribed.';
+            document.getElementById('Notes').value = 'Patient responding well to treatment. Schedule next follow-up in 2 weeks.';
+        }
+
+        function useRoutineCheckupTemplate() {
+            document.getElementById('Diagnosis').value = 'Routine health checkup. Vital signs within normal limits. No acute issues identified.';
+            document.getElementById('Prescription').value = 'No medications prescribed at this time.';
+            document.getElementById('Notes').value = 'Patient in good health. Recommended routine preventive care and healthy lifestyle maintenance.';
+        }
+    </script>
+}

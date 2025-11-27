@@ -1,0 +1,218 @@
+﻿@model ClinicSystem2.ViewModels.AppointmentViewModel
+
+@{
+    ViewData["Title"] = "Appointment Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Appointment Details</h1>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.AppointmentID" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-check"></i> Appointment Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Patient:</dt>
+                    <dd class="col-sm-8">
+                        <strong>@Model.PatientName</strong>
+                        @if (!string.IsNullOrEmpty(Model.PatientPhone))
+                        {
+                            <br />
+                        
+                            <small class="text-muted">@Model.PatientPhone</small>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Doctor:</dt>
+                    <dd class="col-sm-8">
+                        <strong>@Model.DoctorName</strong>
+                        <br /><small class="text-muted">@Model.Specialty</small>
+                    </dd>
+
+                    <dt class="col-sm-4">Date & Time:</dt>
+                    <dd class="col-sm-8">
+                        <strong>@Model.AppointmentDate.ToString("MMMM dd, yyyy")</strong>
+                        <br /><small class="text-muted">@Model.AppointmentDate.ToString("hh:mm tt")</small>
+                    </dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Notes:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            @Model.Notes
+                        }
+                        else
+                        {
+                            <span class="text-muted">No notes</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Status Update -->
+        @if (Model.Status != "Completed")
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" method="post" class="row g-2">
+                        <input type="hidden" name="id" value="@Model.AppointmentID" />
+                        <div class="col-md-8">
+                            <select name="status" class="form-select">
+                                <option value="Pending" selected="@(Model.Status == "Pending")">Pending</option>
+                                <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Confirmed</option>
+                                <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-6">
+        <!-- Payment Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-money-bill-wave"></i> Payment Information
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.Payment != null)
+                {
+                    var payment = ViewBag.Payment as ClinicSystem2.Models.Payment;
+                    <dl class="row">
+                        <dt class="col-sm-4">Amount:</dt>
+                        <dd class="col-sm-8">@payment.Amount?.ToString("C")</dd>
+
+                        <dt class="col-sm-4">Method:</dt>
+                        <dd class="col-sm-8">@payment.Method</dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(payment.Status == "Paid" ? "bg-success" : "bg-warning")">
+                                @payment.Status
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Date:</dt>
+                        <dd class="col-sm-8">@payment.PaymentDate?.ToString("MMM dd, yyyy")</dd>
+                    </dl>
+                }
+                else
+                {
+                    <p class="text-muted text-center">No payment recorded</p>
+                    <a asp-controller="Payment" asp-action="Create" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-plus"></i> Add Payment
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Medical Record -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-medical"></i> Medical Record
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.MedicalRecord != null)
+                {
+                    var medicalRecord = ViewBag.MedicalRecord as ClinicSystem2.Models.MedicalRecord;
+                    <dl class="row">
+                        <dt class="col-sm-4">Diagnosis:</dt>
+                        <dd class="col-sm-8">@medicalRecord.Diagnosis</dd>
+
+                        <dt class="col-sm-4">Prescription:</dt>
+                        <dd class="col-sm-8">
+                            @if (!string.IsNullOrEmpty(medicalRecord.Prescription))
+                            {
+                                @medicalRecord.Prescription
+                            }
+                            else
+                            {
+                                <span class="text-muted">No prescription</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">Record Date:</dt>
+                        <dd class="col-sm-8">@medicalRecord.RecordDate?.ToString("MMM dd, yyyy")</dd>
+                    </dl>
+                }
+                else if (Model.Status == "Completed")
+                {
+                    <a asp-action="Complete" asp-route-id="@Model.AppointmentID" class="btn btn-outline-success w-100">
+                        <i class="fas fa-check"></i> Complete Appointment
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted text-center">No medical record</p>
+                    <small class="text-center d-block">Complete the appointment to create a medical record</small>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Status != "Completed")
+                {
+                    <a asp-action="Complete" asp-route-id="@Model.AppointmentID" class="btn btn-success mb-2 w-100">
+                        <i class="fas fa-check-circle"></i> Complete Appointment
+                    </a>
+                }
+                <a asp-controller="Payment" asp-action="Create" class="btn btn-outline-primary mb-2 w-100">
+                    <i class="fas fa-money-bill"></i> Process Payment
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.AppointmentID" class="btn btn-outline-danger w-100">
+                    <i class="fas fa-trash"></i> Delete Appointment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Confirmed" => "bg-success",
+            "Completed" => "bg-info",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

@@ -1,0 +1,65 @@
+﻿@model IEnumerable<ClinicSystem2.ViewModels.MedicalRecordViewModel>
+
+@{
+    ViewData["Title"] = "Medical Records";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Medical Records</h1>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Record Date</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Specialty</th>
+                        <th>Diagnosis</th>
+                        <th>Appointment Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.RecordDate.ToString("yyyy-MM-dd")</td>
+                            <td>@item.PatientName</td>
+                            <td>@item.DoctorName</td>
+                            <td>@item.Specialty</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Diagnosis))
+                                {
+                                    <span title="@item.Diagnosis">
+                                        @(item.Diagnosis.Length > 50 ? item.Diagnosis.Substring(0, 50) + "..." : item.Diagnosis)
+                                    </span>
+                                }
+                            </td>
+                            <td>@(item.AppointmentDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a asp-action="Details" asp-route-id="@item.RecordID" class="btn btn-info btn-sm">Details</a>
+                                    <a asp-action="Edit" asp-route-id="@item.RecordID" class="btn btn-warning btn-sm">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@item.RecordID" class="btn btn-danger btn-sm">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

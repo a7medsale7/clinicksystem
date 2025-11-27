@@ -1,0 +1,176 @@
+﻿@model ClinicSystem2.ViewModels.DoctorViewModel
+
+@{
+    ViewData["Title"] = "Doctor Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Doctor Details</h1>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.DoctorID" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Basic Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Full Name:</dt>
+                    <dd class="col-sm-8">@Model.FullName</dd>
+
+                    <dt class="col-sm-4">Specialty:</dt>
+                    <dd class="col-sm-8">@Model.Specialty</dd>
+
+                    <dt class="col-sm-4">Consultation Fee:</dt>
+                    <dd class="col-sm-8">@Model.ConsultationFee.ToString("C")</dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Total Appointments:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-primary">@Model.AppointmentCount</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Total Revenue:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-success">@Model.TotalRevenue?.ToString("C")</span>
+                    </dd>
+                </dl>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mt-3">
+                        <strong>Description:</strong>
+                        <p class="text-muted mt-1">@Model.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+       
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Availability Check</h5>
+            </div>
+           
+               
+           
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.TodaySchedule != null)
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-calendar-day"></i> Today's Schedule
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.TodaySchedule.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var appointment in ViewBag.TodaySchedule)
+                            {
+                                <tr>
+                                    <td>@appointment.PatientName</td>
+                                    <td>@appointment.AppointmentDate.ToString("hh:mm tt")</td>
+                                    <td>
+                                        <span class="badge @(appointment.Status == "Confirmed" ? "bg-success" : "bg-warning")">
+                                            @appointment.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center">No appointments scheduled for today.</p>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function getAppointmentCount() {
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 1);
+
+            fetch(`/Doctor/GetAppointmentCount?doctorId=@Model.DoctorID&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Appointment count for the next month: ${data.appointmentCount}`);
+                });
+        }
+
+        function getDoctorRevenue() {
+            const startDate = new Date(new Date().getFullYear(), 0, 1);
+            const endDate = new Date();
+
+            fetch(`/Doctor/GetDoctorRevenue?doctorId=@Model.DoctorID&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Total revenue this year: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(data.totalRevenue)}`);
+                });
+        }
+
+        function checkAvailability() {
+            const dateTimeInput = document.getElementById('checkDateTime');
+            const resultDiv = document.getElementById('availabilityResult');
+
+            if (!dateTimeInput.value) {
+                alert('Please select a date and time');
+                return;
+            }
+
+            const selectedDateTime = new Date(dateTimeInput.value);
+
+            fetch(`/Doctor/CheckTimeSlotAvailability?doctorId=@Model.DoctorID&proposedDateTime=${selectedDateTime.toISOString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isAvailable) {
+                        resultDiv.innerHTML = '<div class="alert alert-success">Time slot is available!</div>';
+                    } else {
+                        resultDiv.innerHTML = '<div class="alert alert-danger">Time slot is not available.</div>';
+                    }
+                });
+        }
+    </script>
+}

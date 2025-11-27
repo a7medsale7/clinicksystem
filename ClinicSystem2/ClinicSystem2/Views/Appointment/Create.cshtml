@@ -1,0 +1,215 @@
+﻿@model ClinicSystem2.ViewModels.AppointmentCreateEditViewModel
+
+@{
+    ViewData["Title"] = "Create Appointment";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Create New Appointment</h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Appointment Details</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" id="appointmentForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="PatientID" class="form-label">Patient *</label>
+                                <select asp-for="PatientID" asp-items="Model.Patients" class="form-select" required>
+                                    <option value="">Select Patient</option>
+                                </select>
+                                <span asp-validation-for="PatientID" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="DoctorID" class="form-label">Doctor *</label>
+                                <select asp-for="DoctorID" asp-items="Model.Doctors" class="form-select" required>
+                                    <option value="">Select Doctor</option>
+                                </select>
+                                <span asp-validation-for="DoctorID" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="AppointmentDate" class="form-label">Appointment Date & Time *</label>
+                                <input asp-for="AppointmentDate" class="form-control" type="datetime-local" required />
+                                <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Status" class="form-label">Status</label>
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Notes" class="form-label">Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Enter any notes about the appointment..."></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> Create Appointment
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="checkAvailability()">
+                            <i class="fas fa-check-circle"></i> Check Availability
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Important Notes</h6>
+                    <ul class="mb-0">
+                        <li>Double booking is automatically prevented</li>
+                        <li>Appointments are typically 30-60 minutes</li>
+                        <li>Working hours: 9:00 AM - 5:00 PM</li>
+                        <li>Doctor availability is checked automatically</li>
+                    </ul>
+                </div>
+
+                <div class="mt-3">
+                    <h6>Availability Check</h6>
+                    <div class="mb-2">
+                        <label class="form-label">Doctor:</label>
+                        <select id="availabilityDoctor" class="form-select">
+                            <option value="">Select Doctor</option>
+                            @foreach (var doctor in Model.Doctors)
+                            {
+                                <option value="@doctor.Value">@doctor.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Date & Time:</label>
+                        <input type="datetime-local" class="form-control" id="availabilityDateTime">
+                    </div>
+                    <button class="btn btn-outline-warning w-100" onclick="quickAvailabilityCheck()">
+                        <i class="fas fa-search"></i> Check Availability
+                    </button>
+                    <div id="availabilityResult" class="mt-2 small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function checkAvailability() {
+            const doctorId = document.getElementById('DoctorID').value;
+            const dateTime = document.getElementById('AppointmentDate').value;
+
+            if (!doctorId || !dateTime) {
+                alert('Please select both doctor and date/time first');
+                return;
+            }
+
+            fetch('/Appointment/CheckTimeSlotAvailability?doctorId=' + doctorId + '&proposedDateTime=' + dateTime, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.available) {
+                    alert('✅ This time slot is available! You can proceed with booking.');
+                } else {
+                    alert('❌ This time slot is not available. Please choose a different time.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error checking availability');
+            });
+        }
+
+        function quickAvailabilityCheck() {
+            const doctorId = document.getElementById('availabilityDoctor').value;
+            const dateTime = document.getElementById('availabilityDateTime').value;
+            const resultDiv = document.getElementById('availabilityResult');
+
+            if (!doctorId || !dateTime) {
+                resultDiv.innerHTML = '<div class="text-warning">Please select doctor and date/time</div>';
+                return;
+            }
+
+            fetch('/Appointment/CheckTimeSlotAvailability?doctorId=' + doctorId + '&proposedDateTime=' + dateTime, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.available) {
+                    resultDiv.innerHTML = '<div class="text-success">✅ Time slot is available!</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="text-danger">❌ Time slot is not available</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '<div class="text-danger">Error checking availability</div>';
+            });
+        }
+
+        // Set minimum datetime to current time
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('AppointmentDate').min = now.toISOString().slice(0, 16);
+            document.getElementById('availabilityDateTime').min = now.toISOString().slice(0, 16);
+
+            // Set default time to next hour
+            const nextHour = new Date(now);
+            nextHour.setHours(nextHour.getHours() + 1);
+            nextHour.setMinutes(0, 0, 0);
+            document.getElementById('AppointmentDate').value = nextHour.toISOString().slice(0, 16);
+        });
+    </script>
+}

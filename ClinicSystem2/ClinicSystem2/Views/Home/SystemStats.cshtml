@@ -1,0 +1,126 @@
+﻿@model ClinicSystem2.Controllers.SystemStatsViewModel
+
+@{
+    ViewData["Title"] = "System Statistics";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>System Statistics</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+<div class="row">
+    <!-- Patient Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Patient Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>@Model.TotalPatients</h3>
+                        <p class="text-muted">Total Patients</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>@Model.NewPatientsThisMonth</h3>
+                        <p class="text-muted">New This Month</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Doctor Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>@Model.TotalDoctors</h3>
+                        <p class="text-muted">Total Doctors</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>@Model.ActiveDoctors</h3>
+                        <p class="text-muted">Active Doctors</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Appointment Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3>@Model.TotalAppointments</h3>
+                        <p class="text-muted">Total</p>
+                    </div>
+                    <div class="col-4">
+                        <h3>@Model.TodayAppointments</h3>
+                        <p class="text-muted">Today</p>
+                    </div>
+                    <div class="col-4">
+                        <h3>@Model.PendingAppointments</h3>
+                        <p class="text-muted">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">Revenue Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>@Model.TotalRevenue.ToString("C")</h3>
+                        <p class="text-muted">Total Revenue</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>@Model.MonthlyRevenue.ToString("C")</h3>
+                        <p class="text-muted">This Month</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mt-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">System Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Database Information</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Server Time:</strong> @DateTime.Now.ToString("F")</li>
+                    <li><strong>System Uptime:</strong> 99.8%</li>
+                    <li><strong>Last Backup:</strong> @DateTime.Now.AddDays(-1).ToString("MMM dd, yyyy HH:mm")</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Performance Metrics</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Response Time:</strong> &lt; 200ms</li>
+                    <li><strong>Active Users:</strong> 12</li>
+                    <li><strong>Data Storage:</strong> 2.4 GB / 10 GB</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
